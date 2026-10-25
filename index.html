@@ -314,6 +314,53 @@
     </div>
   </div>
 
+  <!-- Task Detail Modal (Xem chi tiết công việc) -->
+  <div id="task-detail-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+    <div id="task-detail-card" class="w-full sm:max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-200">
+      <!-- Color accent bar based on tag -->
+      <div id="detail-accent-bar" class="h-1.5 w-full bg-gradient-to-r from-brand-500 to-indigo-400"></div>
+
+      <!-- Header -->
+      <div class="flex items-start justify-between px-5 pt-4 pb-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Time pill -->
+          <div id="detail-time" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-mono text-sm font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-brand-500"></i>
+            <span id="detail-time-text">--:--</span>
+          </div>
+          <!-- Tag badge -->
+          <div id="detail-tag"></div>
+        </div>
+        <button onclick="closeTaskDetail()" class="shrink-0 ml-2 p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Title + Desc -->
+      <div class="px-5 pb-4">
+        <h3 id="detail-title" class="text-base font-bold text-slate-900 dark:text-white leading-snug"></h3>
+        <div id="detail-desc-wrap" class="hidden mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/50">
+          <p id="detail-desc" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line"></p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
+        <button id="detail-complete-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition active:scale-95">
+          <i id="detail-complete-icon" data-lucide="circle" class="w-4 h-4"></i>
+          <span id="detail-complete-text">Hoàn thành</span>
+        </button>
+        <button id="detail-edit-btn" class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+          <i data-lucide="pencil" class="w-4 h-4"></i>
+          <span>Sửa</span>
+        </button>
+        <button id="detail-delete-btn" class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/60 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition active:scale-95">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Cloud Sync Modal (Đồng bộ Đa thiết bị) -->
   <div id="sync-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
     <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
@@ -740,13 +787,13 @@
                 const isFocused = currentFocusTask && currentFocusTask.id === task.id;
 
                 return `
-                  <div class="group relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                  <div class="group relative flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                     isFocused 
                       ? 'bg-brand-500/10 dark:bg-brand-500/15 border-brand-500 ring-2 ring-brand-500/20 shadow-sm'
                       : isCompleted 
                         ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200/50 dark:border-slate-800/40 opacity-55' 
                         : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-brand-500/50 hover:shadow-sm'
-                  }">
+                  }" onclick="openTaskDetail('${task.id}')">
                     <!-- Time Badge -->
                     <div class="shrink-0 flex items-center justify-center px-2 py-1 rounded-md font-mono text-xs font-bold ${
                       isFocused
@@ -779,14 +826,14 @@
                       </div>
 
                       ${task.desc ? `
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed ${isCompleted ? 'line-through opacity-70' : ''}">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-1 ${isCompleted ? 'line-through opacity-70' : ''}">
                           ${task.desc}
                         </p>
                       ` : ''}
                     </div>
 
-                    <!-- Action Buttons: Edit, Delete, Quick Complete -->
-                    <div class="flex items-center gap-1 shrink-0">
+                    <!-- Action Buttons: Edit, Delete, Quick Complete (stop propagation) -->
+                    <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
                       <button onclick="openTaskModal('${task.id}')" title="Sửa công việc" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                       </button>
@@ -914,9 +961,72 @@
     // Gắn sự kiện nút Thêm task ở Header
     document.getElementById('add-task-header-btn').addEventListener('click', () => openTaskModal());
 
+    // --- TASK DETAIL POPUP ---
+    const taskDetailModal = document.getElementById('task-detail-modal');
+    let detailCurrentTaskId = null;
+
+    function openTaskDetail(id) {
+      const tasks = getTasks();
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      detailCurrentTaskId = id;
+
+      // Populate fields
+      document.getElementById('detail-time-text').textContent = task.time;
+      document.getElementById('detail-title').textContent = task.title;
+
+      // Tag
+      const tagEl = document.getElementById('detail-tag');
+      tagEl.innerHTML = task.tag ? getTagBadgeHTML(task.tag) : '';
+
+      // Description
+      const descWrap = document.getElementById('detail-desc-wrap');
+      const descEl = document.getElementById('detail-desc');
+      if (task.desc && task.desc.trim()) {
+        descEl.textContent = task.desc;
+        descWrap.classList.remove('hidden');
+      } else {
+        descWrap.classList.add('hidden');
+      }
+
+      // Complete button state
+      const completeBtn = document.getElementById('detail-complete-btn');
+      const completeIcon = document.getElementById('detail-complete-icon');
+      const completeText = document.getElementById('detail-complete-text');
+      if (task.completed) {
+        completeBtn.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition active:scale-95 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+        completeIcon.setAttribute('data-lucide', 'rotate-ccw');
+        completeText.textContent = 'Bỏ hoàn thành';
+      } else {
+        completeBtn.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition active:scale-95 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm';
+        completeIcon.setAttribute('data-lucide', 'check');
+        completeText.textContent = 'Hoàn thành';
+      }
+
+      // Wire up action buttons
+      completeBtn.onclick = () => { toggleTaskStatus(id); closeTaskDetail(); };
+      document.getElementById('detail-edit-btn').onclick = () => { closeTaskDetail(); openTaskModal(id); };
+      document.getElementById('detail-delete-btn').onclick = () => { closeTaskDetail(); deleteTask(id); };
+
+      taskDetailModal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTaskDetail() {
+      taskDetailModal.classList.add('hidden');
+      detailCurrentTaskId = null;
+    }
+
+    taskDetailModal.addEventListener('click', (e) => {
+      if (e.target === taskDetailModal) closeTaskDetail();
+    });
+
     // Đóng modal khi bấm phím ESC hoặc bấm ra ngoài overlay
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeTaskModal();
+      if (e.key === 'Escape') {
+        closeTaskModal();
+        closeTaskDetail();
+      }
     });
     modalEl.addEventListener('click', (e) => {
       if (e.target === modalEl) closeTaskModal();
